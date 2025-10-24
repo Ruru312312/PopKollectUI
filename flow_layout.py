@@ -3,6 +3,7 @@
 from PyQt5.QtWidgets import QLayout, QWidgetItem
 from PyQt5.QtCore import QPoint, QRect, QSize, Qt
 
+# Custom Flow Layout Implementation
 class FlowLayout(QLayout):
     """
     A custom QLayout that arranges widgets in a line and wraps them when 

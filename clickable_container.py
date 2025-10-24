@@ -1,12 +1,13 @@
 # clickable_container.py (UPDATED)
 
 import sys
-from PyQt5.QtWidgets import QFrame, QLabel, QVBoxLayout
+from PyQt5.QtWidgets import QFrame, QLabel, QVBoxLayout, QHBoxLayout, QPushButton
 from PyQt5.QtCore import Qt, pyqtSignal, QSize 
 from PyQt5.QtGui import QPixmap # <-- Added QPixmap
 
 from funko_pop import FunkoPop 
 
+# Clickable container widget for FunkoPop items
 class ClickableContainer(QFrame):
     clicked = pyqtSignal(FunkoPop) 
 
@@ -30,6 +31,7 @@ class ClickableContainer(QFrame):
             }
         """)
         self.initContainerUI()
+        
     
     def sizeHint(self):
         return self.fixed_pop_size
@@ -78,6 +80,16 @@ class ClickableContainer(QFrame):
         v_layout.addWidget(series_label)
         v_layout.addWidget(value_label)
         v_layout.addStretch(1)
+
+        # #edit and delete buttons
+        # core_buttons_layout = QHBoxLayout()
+        # self.edit_btn = QPushButton("Edit")
+        # self.delete_btn = QPushButton("Delete")
+
+        # core_buttons_layout.addWidget(self.edit_btn)
+        # core_buttons_layout.addWidget(self.delete_btn)
+
+        # v_layout.addLayout(core_buttons_layout)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:

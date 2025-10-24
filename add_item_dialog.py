@@ -8,7 +8,9 @@ from PyQt5.QtGui import QDoubleValidator, QRegularExpressionValidator
 from PyQt5.QtCore import QRegularExpression, QLocale 
 
 from funko_pop import FunkoPop 
+from funko_db import FunkoDB
 
+# Dialog for adding a new Funko Pop item
 class AddItemDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -16,6 +18,10 @@ class AddItemDialog(QDialog):
         self.setModal(True)
         self.new_pop = None
         self.image_path = ""
+
+        from PyQt5.QtCore import Qt
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+
         self.initUI()
 
     def initUI(self):
@@ -25,6 +31,7 @@ class AddItemDialog(QDialog):
         self.name_input = QLineEdit(self)
         self.series_input = QLineEdit(self)
         self.barcode_input = QLineEdit(self)
+        self.barcode_input.setToolTip("A valid barcode is required to fetch your Pop's market value.")
         regex = QRegularExpression("[0-9]{1,15}") 
         validator = QRegularExpressionValidator(regex, self)
         self.barcode_input.setValidator(validator) 
@@ -32,16 +39,17 @@ class AddItemDialog(QDialog):
         # --- NEW INPUT FIELDS ---
         self.item_no_input = QLineEdit(self)     
         self.release_year_input = QLineEdit(self)
+        self.release_year_input.setToolTip("The Pop's release year influences its market value. Please input its actual release year for an accurate market value.")
         self.release_year_input.setMaxLength(4) # Limit year to 4 digits
         # ------------------------
 
-        # Market Value (Read-Only)
-        self.market_value_input = QLineEdit(self)
-        # --- KEY CHANGE: Market value is NOT editable by the user ---
-        self.market_value_input.setText("0.00") # Default value
-        self.market_value_input.setReadOnly(True) 
-        self.market_value_input.setStyleSheet("background-color: #555; color: white;") # Visual indicator
-        # -------------------------------------------------------------
+        # # Market Value (Read-Only)
+        # self.market_value_input = QLineEdit(self)
+        # # --- KEY CHANGE: Market value is NOT editable by the user ---
+        # self.market_value_input.setText("0.00") # Default value
+        # self.market_value_input.setReadOnly(True) 
+        # self.market_value_input.setStyleSheet("background-color: #555; color: white;") # Visual indicator
+        # # -------------------------------------------------------------
 
         # Image Selection Fields (Same as before)
         self.image_path_display = QLineEdit(self)
@@ -56,12 +64,12 @@ class AddItemDialog(QDialog):
         image_h_layout.addWidget(browse_button)
 
         # Adding fields to the layout
+        form_layout.addRow("Barcode (digits only):", self.barcode_input)
         form_layout.addRow("Name:", self.name_input)
         form_layout.addRow("Series:", self.series_input)
-        form_layout.addRow("Barcode (numbers):", self.barcode_input)
         form_layout.addRow("Item Number:", self.item_no_input)      # <-- New Row
         form_layout.addRow("Release Year:", self.release_year_input) # <-- New Row
-        form_layout.addRow("Market Value ($):", self.market_value_input) # Read-only
+        # form_layout.addRow("Market Value ($):", self.market_value_input) # Read-only
         form_layout.addRow("Image Path:", image_h_layout) 
 
         add_button = QPushButton("Create Pop", self)
@@ -104,7 +112,7 @@ class AddItemDialog(QDialog):
         release_year = self.release_year_input.text().strip() # <-- Collect new field
         
         # NOTE: market_value_str is read from the default/unchangeable text
-        market_value_str = self.market_value_input.text().strip() 
+        market_value_str = "0.00"
         
         if not name or not series or not barcode or not item_no or not release_year:
             QMessageBox.warning(self, "Input Error", "All required fields must be filled out.")
@@ -120,14 +128,19 @@ class AddItemDialog(QDialog):
 
         # 2. Create the FunkoPop object
         self.new_pop = FunkoPop(
+            barcode=barcode,
             name=name,
             series=series,
-            barcode=barcode,
+            item_number=item_no,
             market_value=market_value,
-            image_path=self.image_path,
-            itemNo=item_no,             # <-- Pass new field
-            releaseYear=release_year    # <-- Pass new field
+            year=release_year,
+            image_path=self.image_path
         )
+
+        # Save the new pop to funko_pops.db and update its ID
+        self.new_pop.id = FunkoDB.add_funko(self.new_pop)
+        print(f"New FunkoPop saved with ID: {self.new_pop.id}")
+        # FunkoDB.commit_changes()
         
         # 3. Close the dialog as accepted
         super().accept()
