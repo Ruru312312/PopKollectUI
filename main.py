@@ -1,4 +1,4 @@
-import sys
+import sys, subprocess
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QFrame, QSplitter, QPushButton,
@@ -13,12 +13,17 @@ from clickable_container import ClickableContainer
 from add_item_dialog import AddItemDialog
 from pop_details_dialog import PopDetailsDialog
 from funko_db import FunkoDB
+from firebase_db import FirebaseDB
+from sync_app import SyncApp
+from sync_firebase import SyncFirebase
 
 FunkoDB.create_table()  # Ensure the database table exists
 
+# Main Application Window
 class Home(QWidget):
 
     def __init__(self):
+        print("-----Home.__init__() was called-----")
         super().__init__()
         self.setWindowTitle("PopKollect")
         self.setGeometry(100, 100, 1200, 800)
@@ -30,8 +35,10 @@ class Home(QWidget):
         self.max_cols = 4
         self.initUI()
         self.refresh_ui()
+        print("-----Home.__init__() was completed-----")
 
     def initUI(self):
+        print("-----Home.initUI() was called-----")
         main_splitter = QSplitter(Qt.Horizontal)
 
         # --- Section 1: Logo and Add Button (Left - UPDATED for Tooltips) ---
@@ -50,15 +57,19 @@ class Home(QWidget):
 
         # --- NEW BUTTONS SECTION ---
         
+        #sync firebase button
         sync_button = QPushButton("Sync", left_frame)
         sync_button.setStyleSheet("background-color: #2196F3; color: white; padding: 8px; border-radius: 5px;")
-        # Tooltip for Sync
         sync_button.setToolTip("Syncronizes all values from the main database (ONE USE PER DAY)")
+        # sync_button.clicked.connect(self.sync_firebase)
+        sync_button.clicked.connect(SyncFirebase.sync_firebase)
 
+        #update market values button
         update_button = QPushButton("Update", left_frame)
         update_button.setStyleSheet("background-color: #FF9800; color: white; padding: 8px; border-radius: 5px;")
-        # Tooltip for Update
         update_button.setToolTip("Updates the market value live")
+        update_button.clicked.connect(self.sync_app)
+        # update_button.clicked.connect(SyncApp.sync_market_values)
 
         # Add buttons to the layout
         left_layout.addWidget(logo_label)
@@ -148,7 +159,9 @@ class Home(QWidget):
         # Connect edit and delete buttons
         self.edit_button.clicked.connect(self.open_edit_pop_dialog)
         self.delete_button.clicked.connect(self.delete_funko)
+        print("-----Home.initUI() has completed-----")
 
+#open_edit_pop_dialog starts here
     def open_edit_pop_dialog(self):
         if hasattr(self, "current_pop") and self.current_pop:
             dialog = PopDetailsDialog(self.current_pop, self)
@@ -163,14 +176,18 @@ class Home(QWidget):
         else:
             from PyQt5.QtWidgets import QMessageBox
             QMessageBox.information(self, "No Pop Selected", "Please select a Funko to edit.")
+#open_edit_pop_dialog ends here
 
+#open_add_item_dialog starts here
     def open_add_item_dialog(self):
         dialog = AddItemDialog(self)
         if dialog.exec_() == QDialog.Accepted:
             new_pop = dialog.new_pop
             if new_pop:
                 self.refresh_ui()
+#open_add_item_dialog ends here
 
+#add_pop_to_ui starts here
     def add_pop_to_ui(self, pop_object: FunkoPop):
         container = ClickableContainer(pop_object, self.scroll_content_widget)
         container.clicked.connect(self.display_pop_details)
@@ -183,7 +200,9 @@ class Home(QWidget):
         if self.grid_col >= self.max_cols:
             self.grid_col = 0
             self.grid_row += 1
+#add_pop_to_ui ends here
 
+#display_pop_details starts here
     def display_pop_details(self, pop_object: FunkoPop):
         self.current_pop = pop_object
         self.edit_button.setEnabled(True)
@@ -219,8 +238,11 @@ class Home(QWidget):
             self.sidebar_image_label.clear()
             self.sidebar_image_label.setText("No Image Available")
             self.sidebar_image_label.setStyleSheet("color: white; border: 1px solid #555;")
+#display_pop_details ends here
 
+#refresh_ui starts here
     def refresh_ui(self):
+        print("Home.refresh_ui() was called")
         # Clear existing widgets from the grid layout
         while self.container_grid_layout.count():
             item = self.container_grid_layout.takeAt(0)
@@ -234,6 +256,7 @@ class Home(QWidget):
 
         # Clear current inventory and fetch fresh data from DB
         self.inventory = FunkoDB.get_all_funkos()
+        # FunkoDB.commit_changes(FunkoDB)  # Ensure any pending changes are committed
 
         # Add all Funkos back to UI grid
         for funko in self.inventory:
@@ -246,7 +269,9 @@ class Home(QWidget):
         self.sidebar_label.setText("POP DETAILS (Click a Pop)")
         self.sidebar_image_label.clear()
         self.details_label.setText("Name:\nSeries:\nValue:")
+#refresh_ui ends here
 
+#delete_funko starts here
     def delete_funko(self):
         from PyQt5.QtWidgets import QMessageBox
 
@@ -266,6 +291,76 @@ class Home(QWidget):
                 self.refresh_ui()
         else:
             QMessageBox.information(self, "No Pop Selected", "Please select a Funko to delete.")
+#delete_funko ends
+
+#, text=True, capture_output=True
+#sync_firebase starts here
+    # def sync_firebase(self):
+    #     print("-----Sync button clicked-----")
+    #     try:
+    #         result = subprocess.run(['python', 'sync_firebase.py'], check=True)
+    #         print(result.stdout)  # For debugging: Print the output of the script
+    #         self.refresh_ui()  # Refresh the UI after syncing
+    #     except subprocess.CalledProcessError as e:
+    #         print(f"Error while syncing: {e.stderr}")
+    #         from PyQt5.QtWidgets import QMessageBox
+    #         QMessageBox.warning(self, "Sync Failed", f"Failed to sync Firebase Funkos: {e.stderr}")
+    #     print("-----Sync button has completed.-----")
+#sync_firebase ends here
+
+# sync_app starts here
+    def sync_app(self):
+        print("Update button clicked")
+        print("Home.sync_app() was called")
+        # try:
+        #     result = subprocess.run(['python', 'sync_app.py'], check=True)
+        #     print(result.stdout)  # For debugging: Print the output of the script
+        #     self.refresh_ui()  # Refresh the UI after updating market values
+        # except subprocess.CalledProcessError as e:
+        #     print(f"Error while syncing: {e.stderr}")
+        #     from PyQt5.QtWidgets import QMessageBox
+        #     QMessageBox.warning(self, "Update Failed", f"Failed to update personal Funko Pops' market values to firebase_funkos.db: {e.stderr}")
+        SyncApp.sync_market_values()
+        self.refresh_ui()
+        print("Home.sync_app() has completed.")
+
+
+        # print("Syncing app with the latest data...")
+
+        # # Assuming the app needs to fetch data from a Firebase source, or you can replace with any API
+        # try:
+        #     # Assuming you have a method to fetch Funkos from Firebase (you'd implement that part)
+        #     # firebase_data = fetch_funkos_from_firebase()  # This function would handle the actual sync
+
+        #     # For the sake of this example, let's say we have a list of Funkos fetched from Firebase:
+        #     firebase_data = FirebaseDB.get_all_funkos()
+            
+        #     # Compare the fetched data with the local database
+        #     for firebase_funko in firebase_data:
+        #         # Try to find the existing Funko by barcode
+        #         existing_funko = next((f for f in self.inventory if f.barcode == firebase_funko.barcode), None)
+                
+        #         if existing_funko:
+        #             # Update existing Funko's data (e.g., market value, year)
+        #             existing_funko.market_value = firebase_funko.market_value
+        #             existing_funko.year = firebase_funko.year
+        #             # If the data is different, update the record in the database
+        #             FunkoDB.update_funko(existing_funko)
+        #             print(f"Updated Funko: {existing_funko.name}")
+        #         else:
+        #             # If the Funko doesn't exist in the local DB, add it
+        #             firebase_funko.id = FunkoDB.add_funko(firebase_funko)
+        #             print(f"Added new Funko: {firebase_funko.name}")
+
+        #     # Refresh the UI after syncing the database
+        #     self.refresh_ui()
+
+        # except Exception as e:
+        #     print(f"Error during sync: {str(e)}")
+        #     from PyQt5.QtWidgets import QMessageBox
+        #     QMessageBox.warning(self, "Sync Failed", f"Failed to sync app with the latest data: {str(e)}")
+
+# sync_app ends here
 
 
 if __name__ == "__main__":

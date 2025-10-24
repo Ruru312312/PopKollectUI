@@ -35,16 +35,10 @@
 
 
 
-
-
-
-
-
-
-
 from dataclasses import dataclass, field
 from typing import Optional
 
+# funko pop class with multiple constructors simulated via classmethods
 class FunkoDB:
     @staticmethod
     def update_funko(funko):
@@ -70,23 +64,23 @@ class FunkoPop:
     # Simulating overloaded constructors with classmethods
     @classmethod
     def from_basic(cls, barcode, name, series, item_number):
-        print("Funko.from_basic() -1- was called")
+        # print("Funko.from_basic() -1- was called")
         return cls(barcode=barcode, name=name, series=series, item_number=item_number)
 
     @classmethod
     def from_detailed(cls, id, barcode, name, series, item_number, market_value, year):
-        print("Funko.from_detailed() -2- was called")
+        # print("Funko.from_detailed() -2- was called")
         return cls(id=id, barcode=barcode, name=name, series=series, item_number=item_number,
                    market_value=market_value, year=year)
 
     @classmethod
-    def from_market_info(cls, barcode, name, market_value):
-        print("Funko.from_market_info() -3- was called")
-        return cls(barcode=barcode, name=name, market_value=market_value)
+    def from_firebase_funkos(cls, barcode, name, market_value, year):
+        # print("Funko.from_firebase_funkos() -3- was called")
+        return cls(barcode=barcode, name=name, market_value=market_value, year=year)
 
     @classmethod
     def from_sqlite(cls, barcode, name, series, item_number, market_value, year, image_path):
-        print("Funko.from_sqlite() -4- was called")
+        # print("Funko.from_sqlite() -4- was called")
         return cls(barcode=barcode, name=name, series=series, item_number=item_number,
                    market_value=market_value, year=year, image_path=image_path)
 

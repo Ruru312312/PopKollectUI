@@ -7,6 +7,7 @@ from PyQt5.QtGui import QPixmap # <-- Added QPixmap
 
 from funko_pop import FunkoPop 
 
+# Clickable container widget for FunkoPop items
 class ClickableContainer(QFrame):
     clicked = pyqtSignal(FunkoPop) 
 

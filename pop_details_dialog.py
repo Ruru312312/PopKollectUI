@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton
 from funko_pop import FunkoPop
 from funko_db import FunkoDB
 
+# Dialog for editing Funko Pop details
 class PopDetailsDialog(QDialog):
     def __init__(self, funko: FunkoPop, parent=None):
         super().__init__(parent)

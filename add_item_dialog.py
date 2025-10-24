@@ -10,6 +10,7 @@ from PyQt5.QtCore import QRegularExpression, QLocale
 from funko_pop import FunkoPop 
 from funko_db import FunkoDB
 
+# Dialog for adding a new Funko Pop item
 class AddItemDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -139,6 +140,7 @@ class AddItemDialog(QDialog):
         # Save the new pop to funko_pops.db and update its ID
         self.new_pop.id = FunkoDB.add_funko(self.new_pop)
         print(f"New FunkoPop saved with ID: {self.new_pop.id}")
+        # FunkoDB.commit_changes()
         
         # 3. Close the dialog as accepted
         super().accept()

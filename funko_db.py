@@ -2,7 +2,7 @@ import sqlite3
 from typing import List
 from funko_pop import FunkoPop
 
-
+# SQLite database handler for personal Funko Pop collection
 class FunkoDB:
     DB_PATH = "funko_pops.db"
 
@@ -26,6 +26,12 @@ class FunkoDB:
             cursor = conn.cursor()
             cursor.execute(sql)
             conn.commit()
+            # conn.close()  # Close connection to ensure all changes are written
+            # print("Database connection closed.")
+        
+            # # Reopen the connection
+            # conn = sqlite3.connect(FunkoDB.DB_PATH)
+            # print("Database connection reopened.")
 
     @staticmethod
     def add_funko(funko: FunkoPop) -> int:
@@ -45,11 +51,17 @@ class FunkoDB:
                 funko.year
             ))
             conn.commit()
+            # conn.close()  # Close connection to ensure all changes are written
+            # print("Database connection closed.")
+        
+            # # Reopen the connection
+            # conn = sqlite3.connect(FunkoDB.DB_PATH)
+            # print("Database connection reopened.")
             return cursor.lastrowid  # Return the auto-generated ID
 
     @staticmethod
     def get_all_funkos() -> List[FunkoPop]:
-        print("FunkoDB.get_all_funkos() was called")
+        # print("FunkoDB.get_all_funkos() was called")
         funkos = []
         sql = "SELECT * FROM funko_pops"
         with sqlite3.connect(FunkoDB.DB_PATH) as conn:
@@ -91,7 +103,13 @@ class FunkoDB:
                 funko.id
             ))
             conn.commit()
-            print("Funko was updated successfully")
+            # conn.close()  # Close connection to ensure all changes are written
+            # print("Database connection closed.")
+        
+            # # Reopen the connection
+            # conn = sqlite3.connect(FunkoDB.DB_PATH)
+            # print("Database connection reopened.")
+            print("Funko in funko_pops.db was updated successfully")
 
     @staticmethod
     def delete_funko(funko_id: int):
@@ -101,6 +119,12 @@ class FunkoDB:
             cursor = conn.cursor()
             cursor.execute(sql, (funko_id,))
             conn.commit()
+            # conn.close()  # Close connection to ensure all changes are written
+            # print("Database connection closed.")
+        
+            # # Reopen the connection
+            # conn = sqlite3.connect(FunkoDB.DB_PATH)
+            # print("Database connection reopened.")
 
     @staticmethod
     def update_market_value_by_barcode_and_year(barcode: str, year: str, market_value: float):
@@ -110,6 +134,29 @@ class FunkoDB:
             cursor = conn.cursor()
             cursor.execute(sql, (market_value, barcode, year))
             conn.commit()
+            # conn.close()  # Close connection to ensure all changes are written
+            # print("Database connection closed.")
+        
+            # # Reopen the connection
+            # conn = sqlite3.connect(FunkoDB.DB_PATH)
+            # print("Database connection reopened.")
+
+    @staticmethod
+    def commit_changes(self):
+        print("FunkoDB.commit_changes() was called")
+        """Commit changes to the database"""
+        try:
+            self.conn.commit()
+            conn.close()  # Close connection to ensure all changes are written
+            print("Database connection closed.")
+        
+            # Reopen the connection
+            conn = sqlite3.connect(FunkoDB.DB_PATH)
+            print("Database connection reopened.")
+            print("Changes committed to the database.")
+        except sqlite3.Error as e:
+            print(f"Error committing changes: {e}")
+            self.conn.rollback()  # Rollback if there was an error
 
 
 # Example usage:
@@ -117,12 +164,12 @@ if __name__ == "__main__":
     FunkoDB.create_table()
 
     # Create a Funko object using your classmethods
-    new_funko = FunkoPop.from_basic("123456789", "Spider-Man", "Marvel", "SP001")
+    new_funko = FunkoPop.from_basic("123456789", "Spider-Man", "Marvel", "001")
     new_funko.market_value = 25.50
     new_funko.year = "2023"
 
     # Add Funko to DB and get the assigned ID
-    new_funko.id = FunkoDBs.add_funko(new_funko)
+    new_funko.id = FunkoDB.add_funko(new_funko)
     print(f"Added Funko with ID: {new_funko.id}")
 
     # Retrieve all Funkos from DB
