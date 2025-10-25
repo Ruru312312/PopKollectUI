@@ -22,7 +22,7 @@ class FirestoreConnection:
     """
 
     # Hardcoding the service account path here
-    SERVICE_ACCOUNT_PATH = "funkokenny-5585a-firebase-adminsdk-fbsvc-53226aafc1.json"  # Update with your actual file path
+    SERVICE_ACCOUNT_PATH = "funkokenny-5585a-firebase-adminsdk-fbsvc-aa0164b777.json"  # Update with your actual file path
     DATABASE_URL = "https://funkokenny-5585a-default-rtdb.asia-southeast1.firebasedatabase.app"  # Update with your actual Firebase Database URL if necessary
 
     def __init__(self):
