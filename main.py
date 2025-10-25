@@ -342,7 +342,6 @@ class Home(QWidget):
             file_path, _ = QFileDialog.getSaveFileName(self, "Save Excel File", "", "Excel Files (*.xlsx)")
 
             if not file_path:
-                QMessageBox.warning(self, "Export Cancelled", "No file was saved.")
                 conn.close()
                 return
 
@@ -352,7 +351,7 @@ class Home(QWidget):
                     df.to_excel(writer, sheet_name=table_name, index=False)
 
             conn.close()
-            QMessageBox.information(self, "Export Successful", f"All tables exported successfully to:\n{file_path}")
+            QMessageBox.information(self, "Export to Excel is Successful", f"Check your Excel file here:\n{file_path}")
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred:\n{e}")
