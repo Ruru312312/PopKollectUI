@@ -2,7 +2,7 @@ import sys, subprocess
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QFrame, QSplitter, QPushButton,
-    QScrollArea, QDialog, QGridLayout, QSizePolicy, QSpacerItem
+    QScrollArea, QDialog, QGridLayout, QSizePolicy, QSpacerItem, QMessageBox # Added QMessageBox
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
@@ -26,13 +26,14 @@ class Home(QWidget):
         print("-----Home.__init__() was called-----")
         super().__init__()
         self.setWindowTitle("PopKollect")
-        self.setGeometry(100, 100, 1200, 800)
+        # Increase initial window width to accommodate 5 columns and sidebars
+        self.setGeometry(100, 100, 1400, 800) 
         
         self.current_pop = None
         self.inventory = []
         self.grid_row = 0
         self.grid_col = 0
-        self.max_cols = 4
+        self.max_cols = 5 # Changed from 4 to 5 for better spacing
         self.initUI()
         self.refresh_ui()
         print("-----Home.__init__() was completed-----")
@@ -41,10 +42,11 @@ class Home(QWidget):
         print("-----Home.initUI() was called-----")
         main_splitter = QSplitter(Qt.Horizontal)
 
-        # --- Section 1: Logo and Add Button (Left - UPDATED for Tooltips) ---
+        # --- Section 1: Logo and Add Button (Left) ---
         left_frame = QFrame(self)
         left_frame.setFrameShape(QFrame.StyledPanel)
         left_frame.setStyleSheet("background-color: #333; color: white;")
+        left_frame.setFixedWidth(150) # Fixed width for left sidebar
 
         left_layout = QVBoxLayout(left_frame)
         logo_label = QLabel("POPKOLLECT", left_frame)
@@ -55,21 +57,16 @@ class Home(QWidget):
         add_button.setStyleSheet("background-color: #4CAF50; color: white; padding: 10px; border-radius: 5px;")
         add_button.clicked.connect(self.open_add_item_dialog)
 
-        # --- NEW BUTTONS SECTION ---
-        
-        #sync firebase button
+        # --- BUTTONS SECTION ---
         sync_button = QPushButton("Sync", left_frame)
         sync_button.setStyleSheet("background-color: #2196F3; color: white; padding: 8px; border-radius: 5px;")
         sync_button.setToolTip("Syncronizes all values from the main database (ONE USE PER DAY)")
-        # sync_button.clicked.connect(self.sync_firebase)
         sync_button.clicked.connect(SyncFirebase.sync_firebase)
 
-        #update market values button
         update_button = QPushButton("Update", left_frame)
         update_button.setStyleSheet("background-color: #FF9800; color: white; padding: 8px; border-radius: 5px;")
         update_button.setToolTip("Updates the market value live")
         update_button.clicked.connect(self.sync_app)
-        # update_button.clicked.connect(SyncApp.sync_market_values)
 
         # Add buttons to the layout
         left_layout.addWidget(logo_label)
@@ -79,21 +76,31 @@ class Home(QWidget):
         left_layout.addWidget(sync_button)
         left_layout.addWidget(update_button)
         left_layout.addStretch(1)
-        # --- END NEW BUTTONS SECTION ---
 
         main_splitter.addWidget(left_frame)
 
-        # Section 2: Containers (Middle - No change)
+        # --- Section 2: Containers (Middle - FIX: Enforce Minimum Width and Spacing) ---
         middle_frame = QFrame(self)
+        
+        # Calculate minimum width: 5 columns * 220px width + 4 * 20px spacing + 2*20px margin = 1220px
+        # We'll set a reasonable minimum width (e.g., 1250) to ensure 5 columns always fit.
+        middle_frame.setMinimumWidth(1250) 
+        
         middle_frame.setFrameShape(QFrame.StyledPanel)
         middle_frame.setStyleSheet("background-color: #222;")
         self.scroll_area = QScrollArea(middle_frame)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        
         self.scroll_content_widget = QWidget()
-        self.container_grid_layout = QGridLayout(self.scroll_content_widget)
-        self.container_grid_layout.setContentsMargins(10, 10, 10, 10)
-        self.container_grid_layout.setSpacing(10)
+        
+        # This line sets the attribute used in refresh_ui()
+        self.container_grid_layout = QGridLayout(self.scroll_content_widget) 
+        
+        # Increased margins and spacing for larger containers
+        self.container_grid_layout.setContentsMargins(20, 20, 20, 20)
+        self.container_grid_layout.setSpacing(20) 
+
         self.container_grid_layout.addItem(
             QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Fixed),
             0, self.max_cols, 1, 1
@@ -108,10 +115,12 @@ class Home(QWidget):
         middle_layout.addWidget(self.scroll_area)
         main_splitter.addWidget(middle_frame)
 
-        # Section 3: Sidebar (Right - No change)
+        # --- Section 3: Sidebar (Right - FIX: Enforce Fixed Width) ---
         right_frame = QFrame(self)
         right_frame.setFrameShape(QFrame.StyledPanel)
         right_frame.setStyleSheet("background-color: #333; color: white;")
+        right_frame.setFixedWidth(400) # Fixed width for the details sidebar
+        
         right_layout = QVBoxLayout(right_frame)
         self.sidebar_label = QLabel("POP DETAILS (Click a Pop)", right_frame)
         self.sidebar_label.setAlignment(Qt.AlignCenter)
@@ -134,12 +143,12 @@ class Home(QWidget):
         self.edit_button = QPushButton("Edit")
         self.edit_button.setStyleSheet("background-color: #2196F3; color: white; padding: 8px; border-radius: 5px;")
         self.edit_button.setToolTip("Edit the selected Pop's details")
-        self.edit_button.setEnabled(False)  # Initially disabled
+        self.edit_button.setEnabled(False) 
 
         self.delete_button = QPushButton("Delete")
         self.delete_button.setStyleSheet("background-color: #FF9800; color: white; padding: 8px; border-radius: 5px;")
         self.delete_button.setToolTip("Delete the selected Pop from your collection")
-        self.delete_button.setEnabled(False)  # Initially disabled
+        self.delete_button.setEnabled(False) 
 
         core_layout.addWidget(self.edit_button)
         core_layout.addWidget(self.delete_button)
@@ -150,19 +159,22 @@ class Home(QWidget):
 
         main_splitter.addWidget(right_frame)
 
-        main_splitter.setSizes([100, 800, 300])
+        # Set initial sizes. The min/fixed width constraints will ensure proper resizing.
+        # The sum should be roughly the window width (150 + 850 + 400 = 1400)
+        main_splitter.setSizes([150, 850, 400]) 
+        
         main_layout = QHBoxLayout(self)
         main_layout.addWidget(main_splitter)
         self.setLayout(main_layout)
 
         # BUTTON FUNCTIONS
-        # Connect edit and delete buttons
         self.edit_button.clicked.connect(self.open_edit_pop_dialog)
         self.delete_button.clicked.connect(self.delete_funko)
         print("-----Home.initUI() has completed-----")
 
 #open_edit_pop_dialog starts here
     def open_edit_pop_dialog(self):
+        # ... (Method body remains the same)
         if hasattr(self, "current_pop") and self.current_pop:
             dialog = PopDetailsDialog(self.current_pop, self)
             result = dialog.exec_()
@@ -174,12 +186,12 @@ class Home(QWidget):
                 print("Funko deleted!")
                 self.refresh_ui()
         else:
-            from PyQt5.QtWidgets import QMessageBox
             QMessageBox.information(self, "No Pop Selected", "Please select a Funko to edit.")
 #open_edit_pop_dialog ends here
 
 #open_add_item_dialog starts here
     def open_add_item_dialog(self):
+        # ... (Method body remains the same)
         dialog = AddItemDialog(self)
         if dialog.exec_() == QDialog.Accepted:
             new_pop = dialog.new_pop
@@ -189,6 +201,7 @@ class Home(QWidget):
 
 #add_pop_to_ui starts here
     def add_pop_to_ui(self, pop_object: FunkoPop):
+        # ... (Method body remains the same)
         container = ClickableContainer(pop_object, self.scroll_content_widget)
         container.clicked.connect(self.display_pop_details)
 
@@ -204,6 +217,7 @@ class Home(QWidget):
 
 #display_pop_details starts here
     def display_pop_details(self, pop_object: FunkoPop):
+        # ... (Method body remains the same)
         self.current_pop = pop_object
         self.edit_button.setEnabled(True)
         self.delete_button.setEnabled(True)
@@ -242,6 +256,7 @@ class Home(QWidget):
 
 #refresh_ui starts here
     def refresh_ui(self):
+        # ... (Method body remains the same)
         print("Home.refresh_ui() was called")
         # Clear existing widgets from the grid layout
         while self.container_grid_layout.count():
@@ -256,7 +271,6 @@ class Home(QWidget):
 
         # Clear current inventory and fetch fresh data from DB
         self.inventory = FunkoDB.get_all_funkos()
-        # FunkoDB.commit_changes(FunkoDB)  # Ensure any pending changes are committed
 
         # Add all Funkos back to UI grid
         for funko in self.inventory:
@@ -273,8 +287,7 @@ class Home(QWidget):
 
 #delete_funko starts here
     def delete_funko(self):
-        from PyQt5.QtWidgets import QMessageBox
-
+        # ... (Method body remains the same)
         if hasattr(self, "current_pop") and self.current_pop:
             confirm = QMessageBox.question(
                 self,
@@ -293,73 +306,14 @@ class Home(QWidget):
             QMessageBox.information(self, "No Pop Selected", "Please select a Funko to delete.")
 #delete_funko ends
 
-#, text=True, capture_output=True
-#sync_firebase starts here
-    # def sync_firebase(self):
-    #     print("-----Sync button clicked-----")
-    #     try:
-    #         result = subprocess.run(['python', 'sync_firebase.py'], check=True)
-    #         print(result.stdout)  # For debugging: Print the output of the script
-    #         self.refresh_ui()  # Refresh the UI after syncing
-    #     except subprocess.CalledProcessError as e:
-    #         print(f"Error while syncing: {e.stderr}")
-    #         from PyQt5.QtWidgets import QMessageBox
-    #         QMessageBox.warning(self, "Sync Failed", f"Failed to sync Firebase Funkos: {e.stderr}")
-    #     print("-----Sync button has completed.-----")
-#sync_firebase ends here
-
 # sync_app starts here
     def sync_app(self):
+        # ... (Method body remains the same)
         print("Update button clicked")
         print("Home.sync_app() was called")
-        # try:
-        #     result = subprocess.run(['python', 'sync_app.py'], check=True)
-        #     print(result.stdout)  # For debugging: Print the output of the script
-        #     self.refresh_ui()  # Refresh the UI after updating market values
-        # except subprocess.CalledProcessError as e:
-        #     print(f"Error while syncing: {e.stderr}")
-        #     from PyQt5.QtWidgets import QMessageBox
-        #     QMessageBox.warning(self, "Update Failed", f"Failed to update personal Funko Pops' market values to firebase_funkos.db: {e.stderr}")
         SyncApp.sync_market_values()
         self.refresh_ui()
         print("Home.sync_app() has completed.")
-
-
-        # print("Syncing app with the latest data...")
-
-        # # Assuming the app needs to fetch data from a Firebase source, or you can replace with any API
-        # try:
-        #     # Assuming you have a method to fetch Funkos from Firebase (you'd implement that part)
-        #     # firebase_data = fetch_funkos_from_firebase()  # This function would handle the actual sync
-
-        #     # For the sake of this example, let's say we have a list of Funkos fetched from Firebase:
-        #     firebase_data = FirebaseDB.get_all_funkos()
-            
-        #     # Compare the fetched data with the local database
-        #     for firebase_funko in firebase_data:
-        #         # Try to find the existing Funko by barcode
-        #         existing_funko = next((f for f in self.inventory if f.barcode == firebase_funko.barcode), None)
-                
-        #         if existing_funko:
-        #             # Update existing Funko's data (e.g., market value, year)
-        #             existing_funko.market_value = firebase_funko.market_value
-        #             existing_funko.year = firebase_funko.year
-        #             # If the data is different, update the record in the database
-        #             FunkoDB.update_funko(existing_funko)
-        #             print(f"Updated Funko: {existing_funko.name}")
-        #         else:
-        #             # If the Funko doesn't exist in the local DB, add it
-        #             firebase_funko.id = FunkoDB.add_funko(firebase_funko)
-        #             print(f"Added new Funko: {firebase_funko.name}")
-
-        #     # Refresh the UI after syncing the database
-        #     self.refresh_ui()
-
-        # except Exception as e:
-        #     print(f"Error during sync: {str(e)}")
-        #     from PyQt5.QtWidgets import QMessageBox
-        #     QMessageBox.warning(self, "Sync Failed", f"Failed to sync app with the latest data: {str(e)}")
-
 # sync_app ends here
 
 

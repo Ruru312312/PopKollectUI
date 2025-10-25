@@ -16,7 +16,7 @@ class ClickableContainer(QFrame):
         self.pop_object = pop_object
         self.setFrameShape(QFrame.StyledPanel)
         
-        self.fixed_pop_size = QSize(200, 120) 
+        self.fixed_pop_size = QSize(220, 150) 
         self.setFixedSize(self.fixed_pop_size) 
         # ... (Stylesheet remains the same)
         self.setStyleSheet("""
@@ -49,7 +49,7 @@ class ClickableContainer(QFrame):
             
             if not pixmap.isNull():
                 # Scale the pixmap to fit the label (e.g., 60x60)
-                scaled_pixmap = pixmap.scaled(60, 60, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                scaled_pixmap = pixmap.scaled(80, 80, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                 image_label.setPixmap(scaled_pixmap)
             else:
                 # Fallback if image path is bad or file corrupted
