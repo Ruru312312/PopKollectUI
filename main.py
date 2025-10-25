@@ -68,6 +68,11 @@ class Home(QWidget):
         update_button.setToolTip("Updates the market value live")
         update_button.clicked.connect(self.sync_app)
 
+        export_button = QPushButton("Export to Excel", left_frame)
+        export_button.setStyleSheet("background-color: #00A86B; color: white; padding: 8px; border-radius: 5px;")
+        export_button.setToolTip("Export data to Excel File format")
+        export_button.clicked.connect(self.sync_app)
+
         # Add buttons to the layout
         left_layout.addWidget(logo_label)
         left_layout.addSpacing(20)
@@ -75,6 +80,7 @@ class Home(QWidget):
         left_layout.addSpacing(15)
         left_layout.addWidget(sync_button)
         left_layout.addWidget(update_button)
+        left_layout.addWidget(export_button)
         left_layout.addStretch(1)
 
         main_splitter.addWidget(left_frame)
