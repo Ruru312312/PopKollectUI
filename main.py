@@ -17,6 +17,7 @@ from firebase_db import FirebaseDB
 from sync_app import SyncApp
 from sync_firebase import SyncFirebase
 
+
 FunkoDB.create_table()  # Ensure the database table exists
 
 # Main Application Window
@@ -71,7 +72,8 @@ class Home(QWidget):
         export_button = QPushButton("Export to Excel", left_frame)
         export_button.setStyleSheet("background-color: #00A86B; color: white; padding: 8px; border-radius: 5px;")
         export_button.setToolTip("Export data to Excel File format")
-        export_button.clicked.connect(self.sync_app)
+        export_button.clicked.connect(self.export_sql_excel)
+
 
         # Add buttons to the layout
         left_layout.addWidget(logo_label)
@@ -321,6 +323,40 @@ class Home(QWidget):
         self.refresh_ui()
         print("Home.sync_app() has completed.")
 # sync_app ends here
+
+# export_sql_excel starts here
+    def export_sql_excel(self):
+        import sqlite3
+        import pandas as pd
+        from PyQt5.QtWidgets import QFileDialog, QMessageBox
+
+        try:
+            conn = sqlite3.connect("funko_pops.db")
+            tables = pd.read_sql_query("SELECT name FROM sqlite_master WHERE type='table';", conn)
+
+            if tables.empty:
+                QMessageBox.warning(self, "No Tables Found", "The database contains no tables.")
+                conn.close()
+                return
+
+            file_path, _ = QFileDialog.getSaveFileName(self, "Save Excel File", "", "Excel Files (*.xlsx)")
+
+            if not file_path:
+                QMessageBox.warning(self, "Export Cancelled", "No file was saved.")
+                conn.close()
+                return
+
+            with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
+                for table_name in tables['name']:
+                    df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
+                    df.to_excel(writer, sheet_name=table_name, index=False)
+
+            conn.close()
+            QMessageBox.information(self, "Export Successful", f"All tables exported successfully to:\n{file_path}")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"An error occurred:\n{e}")
+# export_sql_excel ends here
 
 
 if __name__ == "__main__":
