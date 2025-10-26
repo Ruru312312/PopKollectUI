@@ -53,18 +53,62 @@ class Home(QWidget):
         logo_label.setAlignment(Qt.AlignCenter)
         logo_label.setStyleSheet("font-size: 24px; font-weight: bold; border: 2px solid grey; padding: 10px;")
         
+        # --- BUTTONS SECTION ---
+
         add_button = QPushButton("Add New Pop", left_frame)
-        add_button.setStyleSheet("background-color: #4CAF50; color: white; padding: 10px; border-radius: 5px;")
+        add_button.setStyleSheet("""
+            /* Default (Idle) State */
+            QPushButton {
+                background-color: #4CAF50; 
+                color: white; 
+                padding: 10px; 
+                border-radius: 5px;
+            }
+            /* Pressed State: Darken color and shift text down/right */
+            QPushButton:pressed {
+                background-color: #388E3C; /* A darker green */
+                padding-left: 9px;  /* Shift content slightly */
+                padding-top: 11px;
+            }
+        """)
         add_button.clicked.connect(self.open_add_item_dialog)
 
-        # --- BUTTONS SECTION ---
+        
         sync_button = QPushButton("Sync", left_frame)
-        sync_button.setStyleSheet("background-color: #2196F3; color: white; padding: 8px; border-radius: 5px;")
+        sync_button.setStyleSheet("""
+            /* Default (Idle) State */
+            QPushButton {
+                background-color: #000080; 
+                color: white; 
+                padding: 10px; 
+                border-radius: 5px;
+            }
+            /* Pressed State: Darken color and shift text down/right */
+            QPushButton:pressed {
+                background-color: #388E3C; /* A darker green */
+                padding-left: 9px;  /* Shift content slightly */
+                padding-top: 11px;
+            }
+        """)
         sync_button.setToolTip("Syncronizes all values from the main database (ONE USE PER DAY)")
         sync_button.clicked.connect(SyncFirebase.sync_firebase)
 
         update_button = QPushButton("Update", left_frame)
-        update_button.setStyleSheet("background-color: #FF9800; color: white; padding: 8px; border-radius: 5px;")
+        update_button.setStyleSheet("""
+            /* Default (Idle) State */
+            QPushButton {
+                background-color: #FF7F50; 
+                color: white; 
+                padding: 10px; 
+                border-radius: 5px;
+            }
+            /* Pressed State: Darken color and shift text down/right */
+            QPushButton:pressed {
+                background-color: #388E3C; /* A darker green */
+                padding-left: 9px;  /* Shift content slightly */
+                padding-top: 11px;
+            }
+        """)
         update_button.setToolTip("Updates the market value live")
         update_button.clicked.connect(self.sync_app)
 
@@ -141,12 +185,40 @@ class Home(QWidget):
         core_layout = QHBoxLayout(core_buttons_frame)
 
         self.edit_button = QPushButton("Edit")
-        self.edit_button.setStyleSheet("background-color: #2196F3; color: white; padding: 8px; border-radius: 5px;")
+        self.edit_button.setStyleSheet("""
+            /* Default (Idle) State */
+            QPushButton {
+                background-color: #808080; 
+                color: white; 
+                padding: 10px; 
+                border-radius: 5px;
+            }
+            /* Pressed State: Darken color and shift text down/right */
+            QPushButton:pressed {
+                background-color: #388E3C; /* A darker green */
+                padding-left: 9px;  /* Shift content slightly */
+                padding-top: 11px;
+            }
+        """)
         self.edit_button.setToolTip("Edit the selected Pop's details")
         self.edit_button.setEnabled(False) 
 
         self.delete_button = QPushButton("Delete")
-        self.delete_button.setStyleSheet("background-color: #FF9800; color: white; padding: 8px; border-radius: 5px;")
+        self.delete_button.setStyleSheet("""
+            /* Default (Idle) State */
+            QPushButton {
+                background-color: #FF0000; 
+                color: white; 
+                padding: 10px; 
+                border-radius: 5px;
+            }
+            /* Pressed State: Darken color and shift text down/right */
+            QPushButton:pressed {
+                background-color: #388E3C; /* A darker green */
+                padding-left: 9px;  /* Shift content slightly */
+                padding-top: 11px;
+            }
+        """)
         self.delete_button.setToolTip("Delete the selected Pop from your collection")
         self.delete_button.setEnabled(False) 
 
