@@ -157,6 +157,7 @@ class FunkoDB:
         except sqlite3.Error as e:
             print(f"Error committing changes: {e}")
             self.conn.rollback()  # Rollback if there was an error
+    
 
 
 # Example usage:

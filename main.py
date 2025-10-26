@@ -1,11 +1,12 @@
 import sys, subprocess
+import os # NEW: Import os for file checking
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QFrame, QSplitter, QPushButton,
-    QScrollArea, QDialog, QGridLayout, QSizePolicy, QSpacerItem, QMessageBox # Added QMessageBox
+    QScrollArea, QDialog, QGridLayout, QSizePolicy, QSpacerItem, QMessageBox
 )
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QIcon # NEW: Import QIcon for the info symbol
 
 # --- Import the separated classes ---
 from funko_pop import FunkoPop
@@ -33,10 +34,24 @@ class Home(QWidget):
         self.inventory = []
         self.grid_row = 0
         self.grid_col = 0
-        self.max_cols = 5 # Changed from 4 to 5 for better spacing
+        self.max_cols = 5
         self.initUI()
         self.refresh_ui()
         print("-----Home.__init__() was completed-----")
+        
+    def setup_info_icon(self, label_widget, tooltip_text):
+        """Sets up a QLabel to display a generic info icon and a tooltip."""
+        
+        # Using Unicode info symbol as a reliable icon replacement
+        label_widget.setText("ⓘ") 
+        label_widget.setStyleSheet("color: #FFFF00; font-weight: bold;")
+        
+        # Set the tooltip text
+        label_widget.setToolTip(tooltip_text)
+        
+        # Ensure the label is small and fixed size
+        label_widget.setFixedSize(20, 20) 
+        label_widget.setAlignment(Qt.AlignCenter)
 
     def initUI(self):
         print("-----Home.initUI() was called-----")
@@ -46,7 +61,7 @@ class Home(QWidget):
         left_frame = QFrame(self)
         left_frame.setFrameShape(QFrame.StyledPanel)
         left_frame.setStyleSheet("background-color: #333; color: white;")
-        left_frame.setFixedWidth(150) # Fixed width for left sidebar
+        left_frame.setFixedWidth(150)
 
         left_layout = QVBoxLayout(left_frame)
         logo_label = QLabel("POPKOLLECT", left_frame)
@@ -123,13 +138,9 @@ class Home(QWidget):
 
         main_splitter.addWidget(left_frame)
 
-        # --- Section 2: Containers (Middle - FIX: Enforce Minimum Width and Spacing) ---
+        # --- Section 2: Containers (Middle) ---
         middle_frame = QFrame(self)
-        
-        # Calculate minimum width: 5 columns * 220px width + 4 * 20px spacing + 2*20px margin = 1220px
-        # We'll set a reasonable minimum width (e.g., 1250) to ensure 5 columns always fit.
-        middle_frame.setMinimumWidth(1250) 
-        
+        middle_frame.setMinimumWidth(1250)
         middle_frame.setFrameShape(QFrame.StyledPanel)
         middle_frame.setStyleSheet("background-color: #222;")
         self.scroll_area = QScrollArea(middle_frame)
@@ -137,11 +148,8 @@ class Home(QWidget):
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         
         self.scroll_content_widget = QWidget()
-        
-        # This line sets the attribute used in refresh_ui()
         self.container_grid_layout = QGridLayout(self.scroll_content_widget) 
         
-        # Increased margins and spacing for larger containers
         self.container_grid_layout.setContentsMargins(20, 20, 20, 20)
         self.container_grid_layout.setSpacing(20) 
 
@@ -159,26 +167,72 @@ class Home(QWidget):
         middle_layout.addWidget(self.scroll_area)
         main_splitter.addWidget(middle_frame)
 
-        # --- Section 3: Sidebar (Right - FIX: Enforce Fixed Width) ---
+        # --- Section 3: Sidebar (Right - UPDATED to QGridLayout for Details) ---
         right_frame = QFrame(self)
         right_frame.setFrameShape(QFrame.StyledPanel)
         right_frame.setStyleSheet("background-color: #333; color: white;")
-        right_frame.setFixedWidth(400) # Fixed width for the details sidebar
+        right_frame.setFixedWidth(400)
         
         right_layout = QVBoxLayout(right_frame)
         self.sidebar_label = QLabel("POP DETAILS (Click a Pop)", right_frame)
         self.sidebar_label.setAlignment(Qt.AlignCenter)
         self.sidebar_label.setStyleSheet("font-size: 18px; font-weight: bold; color: yellow;")
         right_layout.addWidget(self.sidebar_label)
+        
         self.sidebar_image_label = QLabel("Click a Pop to see the Image", right_frame)
         self.sidebar_image_label.setAlignment(Qt.AlignCenter)
         self.sidebar_image_label.setFixedSize(200, 200)
         self.sidebar_image_label.setStyleSheet("border: 1px solid #555;")
         right_layout.addWidget(self.sidebar_image_label)
-        self.details_label = QLabel("Name:\nSeries:\nValue:", right_frame)
-        self.details_label.setTextFormat(Qt.RichText)
-        right_layout.addWidget(self.details_label)
-        right_layout.addStretch(1)
+
+        
+        # Details Frame and Grid Layout
+        details_frame = QFrame(right_frame)
+        details_layout = QGridLayout(details_frame)
+        
+        # --- Create Detail Labels and Info Icons ---
+        # 0: Barcode Label and Icon
+        self.barcode_label = QLabel("Barcode: --")
+        self.barcode_icon = QLabel(details_frame)
+        self.setup_info_icon(self.barcode_icon, "ENTER TIP FOR BARCODE")
+        details_layout.addWidget(self.barcode_label, 0, 0)
+        details_layout.addWidget(self.barcode_icon, 0, 1)
+        
+        # 1: Name Label
+        self.name_label = QLabel("Name: --")
+        details_layout.addWidget(self.name_label, 1, 0, 1, 2)
+        
+        # 2: Series Label
+        self.series_label = QLabel("Series: --")
+        details_layout.addWidget(self.series_label, 2, 0, 1, 2)
+        
+        # 3: Item Number Label
+        self.item_number_label = QLabel("Item Number: --")
+        details_layout.addWidget(self.item_number_label, 3, 0, 1, 2)
+        
+        # 4: Release Year Label and Icon
+        self.year_label = QLabel("Release Year: --")
+        self.year_icon = QLabel(details_frame)
+        self.setup_info_icon(self.year_icon, "ENTER TIP FOR RELEASE YEAR")
+        details_layout.addWidget(self.year_label, 4, 0)
+        details_layout.addWidget(self.year_icon, 4, 1)
+
+        # 5: Market Value Label
+        self.value_label = QLabel("Market Value: --")
+        details_layout.addWidget(self.value_label, 5, 0, 1, 2)
+        
+        # 6: invis Label
+        self.invis_label = QLabel("")
+        self.invis_label.setStyleSheet("color: red; font-weight: bold; margin-top: 10px;")
+        details_layout.addWidget(self.invis_label, 6, 0, 1, 2)
+
+        # Configure the grid columns
+        details_layout.setColumnStretch(0, 1) # Label column gets most space
+        details_layout.setColumnStretch(1, 0) # Icon column is tight
+        
+        # Add the new details frame to the main right layout
+        right_layout.addWidget(details_frame)
+        right_layout.addStretch(1) # Stretch ensures layout is pushed up
 
         # edit and delete buttons
         core_buttons_frame = QFrame()
@@ -195,8 +249,8 @@ class Home(QWidget):
             }
             /* Pressed State: Darken color and shift text down/right */
             QPushButton:pressed {
-                background-color: #388E3C; /* A darker green */
-                padding-left: 9px;  /* Shift content slightly */
+                background-color: #696969; 
+                padding-left: 9px;  
                 padding-top: 11px;
             }
         """)
@@ -214,8 +268,8 @@ class Home(QWidget):
             }
             /* Pressed State: Darken color and shift text down/right */
             QPushButton:pressed {
-                background-color: #388E3C; /* A darker green */
-                padding-left: 9px;  /* Shift content slightly */
+                background-color: #B22222; 
+                padding-left: 9px;  
                 padding-top: 11px;
             }
         """)
@@ -231,8 +285,7 @@ class Home(QWidget):
 
         main_splitter.addWidget(right_frame)
 
-        # Set initial sizes. The min/fixed width constraints will ensure proper resizing.
-        # The sum should be roughly the window width (150 + 850 + 400 = 1400)
+        # Set initial sizes.
         main_splitter.setSizes([150, 850, 400]) 
         
         main_layout = QHBoxLayout(self)
@@ -246,7 +299,6 @@ class Home(QWidget):
 
 #open_edit_pop_dialog starts here
     def open_edit_pop_dialog(self):
-        # ... (Method body remains the same)
         if hasattr(self, "current_pop") and self.current_pop:
             dialog = PopDetailsDialog(self.current_pop, self)
             result = dialog.exec_()
@@ -263,7 +315,6 @@ class Home(QWidget):
 
 #open_add_item_dialog starts here
     def open_add_item_dialog(self):
-        # ... (Method body remains the same)
         dialog = AddItemDialog(self)
         if dialog.exec_() == QDialog.Accepted:
             new_pop = dialog.new_pop
@@ -273,9 +324,10 @@ class Home(QWidget):
 
 #add_pop_to_ui starts here
     def add_pop_to_ui(self, pop_object: FunkoPop):
-        # ... (Method body remains the same)
         container = ClickableContainer(pop_object, self.scroll_content_widget)
+        container.clicked.connect(self.FBpopChecker)
         container.clicked.connect(self.display_pop_details)
+        
 
         self.container_grid_layout.addWidget(
             container, self.grid_row, self.grid_col
@@ -287,26 +339,59 @@ class Home(QWidget):
             self.grid_row += 1
 #add_pop_to_ui ends here
 
+#testFunctionPopFinder
+    def FBpopChecker (self, pop_object: FunkoPop):
+        print ("----------FBpopCheckerCalled------------")
+
+        firebase_funkos = FirebaseDB.get_all_funkos()
+        current_funkos = pop_object
+        PopFoundInDB = False
+
+        for firebase_funko in firebase_funkos:
+            if current_funkos.barcode == firebase_funko.barcode:
+                print(current_funkos.name)
+                PopFoundInDB = True
+                print ("Pop In Database")
+        
+        if not PopFoundInDB:
+            print("notFoundDawg")
+        return PopFoundInDB
+             
+        
+        
+
+
+#testFunctionPopFinder
+
 #display_pop_details starts here
+    
     def display_pop_details(self, pop_object: FunkoPop):
-        # ... (Method body remains the same)
+        
+        invisValue = self.FBpopChecker(pop_object)
+        
         self.current_pop = pop_object
         self.edit_button.setEnabled(True)
         self.delete_button.setEnabled(True)
         self.sidebar_label.setText(f"Details for: {pop_object.name}")
         info = pop_object.get_info()
 
-        details_text = (
-            f"Barcode: {info['barcode']}<br>"
-            f"Name: <b>{info['name']}</b><br>"
-            f"Series: {info['series']}<br>"
-            f"Item Number: {info['item_number']}<br>"
-            f"Release Year: {info['year']}<br>"
-            f"Market Value: <b>${info['market_value']}</b>"
-        )
-
-        self.details_label.setText(details_text)
-
+        # UPDATED: Set text for individual labels
+        self.barcode_label.setText(f"Barcode: {info['barcode']}")
+        self.name_label.setText(f"Name: <b>{info['name']}</b>")
+        self.series_label.setText(f"Series: {info['series']}")
+        self.item_number_label.setText(f"Item Number: {info['item_number']}")
+        self.year_label.setText(f"Release Year: {info['year']}")
+        self.value_label.setText(f"Market Value: <b>${info['market_value']}</b>")
+        
+        if invisValue == True:
+            varText = ""
+        if invisValue == False:
+            varText = "POP NOT IN DATABASE"
+        
+        self.invis_label.setText(varText)
+        # current_barcode = info['barcode']
+        
+        
         if pop_object.image_path:
             pixmap = QPixmap(pop_object.image_path)
             if not pixmap.isNull():
@@ -328,7 +413,6 @@ class Home(QWidget):
 
 #refresh_ui starts here
     def refresh_ui(self):
-        # ... (Method body remains the same)
         print("Home.refresh_ui() was called")
         # Clear existing widgets from the grid layout
         while self.container_grid_layout.count():
@@ -348,18 +432,25 @@ class Home(QWidget):
         for funko in self.inventory:
             self.add_pop_to_ui(funko)
 
-        # Disable edit/delete buttons after refresh
+        # Disable edit/delete buttons after refresh and clear sidebar labels
         self.edit_button.setEnabled(False)
         self.delete_button.setEnabled(False)
         self.current_pop = None
         self.sidebar_label.setText("POP DETAILS (Click a Pop)")
         self.sidebar_image_label.clear()
-        self.details_label.setText("Name:\nSeries:\nValue:")
+        
+        # Reset individual detail labels
+        self.barcode_label.setText("Barcode: --")
+        self.name_label.setText("Name: --")
+        self.series_label.setText("Series: --")
+        self.item_number_label.setText("Item Number: --")
+        self.year_label.setText("Release Year: --")
+        self.value_label.setText("Market Value: --")
+        
 #refresh_ui ends here
 
 #delete_funko starts here
     def delete_funko(self):
-        # ... (Method body remains the same)
         if hasattr(self, "current_pop") and self.current_pop:
             confirm = QMessageBox.question(
                 self,
@@ -380,10 +471,30 @@ class Home(QWidget):
 
 # sync_app starts here
     def sync_app(self):
-        # ... (Method body remains the same)
+        import os
+        from PyQt5.QtWidgets import QMessageBox
+
+        DB_FILE_NAME = "firebase_funkos.db"
+        
         print("Update button clicked")
         print("Home.sync_app() was called")
+
+        # CHECK 1: Check for the database file in the current directory
+        if not os.path.exists(DB_FILE_NAME):
+            QMessageBox.warning(
+                self, 
+                "Update Failed", 
+                f"Cannot update market values. The required database file '{DB_FILE_NAME}' was not found in the application directory."
+            )
+            print(f"Error: {DB_FILE_NAME} not found. Update aborted.")
+            return # Stop execution if the file is missing
+
+        # CHECK 2 (Optional but recommended): Check for internet connection if possible before proceeding
+        # (Assuming SyncApp.sync_market_values() handles the actual internet connection check)
+
+        # 3. If the file is found, proceed with the update logic
         SyncApp.sync_market_values()
+        
         self.refresh_ui()
         print("----- Home.sync_app() has completed. -----")
 # sync_app ends here
@@ -391,6 +502,18 @@ class Home(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+
+    app.setStyleSheet("""
+        QToolTip {
+            background-color: #444; 
+            color: #FFFF00; 
+            padding: 5px; 
+            border: 1px solid #777;
+            border-radius: 3px;
+        }
+    """)
+
+
     main_window = Home()
     main_window.show()
     sys.exit(app.exec_())
