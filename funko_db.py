@@ -19,7 +19,8 @@ class FunkoDB:
             series TEXT NOT NULL,
             item_number TEXT NOT NULL,
             market_value REAL,
-            year TEXT
+            year TEXT,
+            image_path TEXT
         );
         """
         with sqlite3.connect(FunkoDB.DB_PATH) as conn:
@@ -37,8 +38,8 @@ class FunkoDB:
     def add_funko(funko: FunkoPop) -> int:
         print("FunkoDB.add_funko() was called")
         sql = """
-        INSERT INTO funko_pops (barcode, name, series, item_number, market_value, year)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO funko_pops (barcode, name, series, item_number, market_value, year, image_path)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """
         with sqlite3.connect(FunkoDB.DB_PATH) as conn:
             cursor = conn.cursor()
@@ -48,7 +49,8 @@ class FunkoDB:
                 funko.series,
                 funko.item_number,
                 funko.market_value,
-                funko.year
+                funko.year,
+                funko.image_path
             ))
             conn.commit()
             # conn.close()  # Close connection to ensure all changes are written
@@ -76,7 +78,8 @@ class FunkoDB:
                     series=row[3],
                     item_number=row[4],
                     market_value=row[5],
-                    year=row[6]
+                    year=row[6],
+                    image_path=row[7]
                 )
                 funkos.append(funko)
         return funkos
@@ -100,7 +103,8 @@ class FunkoDB:
                 funko.item_number,
                 funko.market_value,
                 funko.year,
-                funko.id
+                funko.id,
+                funko.image_path
             ))
             conn.commit()
             # conn.close()  # Close connection to ensure all changes are written
@@ -125,6 +129,7 @@ class FunkoDB:
             # # Reopen the connection
             # conn = sqlite3.connect(FunkoDB.DB_PATH)
             # print("Database connection reopened.")
+        print(f"Funko with ID {funko_id} deleted from funko_pops.db")
 
     @staticmethod
     def update_market_value_by_barcode_and_year(barcode: str, year: str, market_value: float):
@@ -140,23 +145,24 @@ class FunkoDB:
             # # Reopen the connection
             # conn = sqlite3.connect(FunkoDB.DB_PATH)
             # print("Database connection reopened.")
+        print(f"Updated market value for barcode {barcode} and year {year} to {market_value}")
 
-    @staticmethod
-    def commit_changes(self):
-        print("FunkoDB.commit_changes() was called")
-        """Commit changes to the database"""
-        try:
-            self.conn.commit()
-            conn.close()  # Close connection to ensure all changes are written
-            print("Database connection closed.")
+    # @staticmethod
+    # def commit_changes(self):
+    #     print("FunkoDB.commit_changes() was called")
+    #     """Commit changes to the database"""
+    #     try:
+    #         self.conn.commit()
+    #         conn.close()  # Close connection to ensure all changes are written
+    #         print("Database connection closed.")
         
-            # Reopen the connection
-            conn = sqlite3.connect(FunkoDB.DB_PATH)
-            print("Database connection reopened.")
-            print("Changes committed to the database.")
-        except sqlite3.Error as e:
-            print(f"Error committing changes: {e}")
-            self.conn.rollback()  # Rollback if there was an error
+    #         # Reopen the connection
+    #         conn = sqlite3.connect(FunkoDB.DB_PATH)
+    #         print("Database connection reopened.")
+    #         print("Changes committed to the database.")
+    #     except sqlite3.Error as e:
+    #         print(f"Error committing changes: {e}")
+    #         self.conn.rollback()  # Rollback if there was an error
 
 
 # Example usage:

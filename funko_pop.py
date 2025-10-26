@@ -68,10 +68,10 @@ class FunkoPop:
         return cls(barcode=barcode, name=name, series=series, item_number=item_number)
 
     @classmethod
-    def from_detailed(cls, id, barcode, name, series, item_number, market_value, year):
+    def from_detailed(cls, id, barcode, name, series, item_number, market_value, year, image_path):
         # print("Funko.from_detailed() -2- was called")
         return cls(id=id, barcode=barcode, name=name, series=series, item_number=item_number,
-                   market_value=market_value, year=year)
+                   market_value=market_value, year=year, image_path=image_path)
 
     @classmethod
     def from_firebase_funkos(cls, barcode, name, market_value, year):
