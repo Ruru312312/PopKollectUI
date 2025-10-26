@@ -18,6 +18,8 @@ class SyncFirebase:
             print(f"✅ Synced Funko Pop: {f.name}")
 
         print("✅ Synced Firebase funkos into firebase_funkos.db")
+        print("Total funkos synced:", len(firebase_funkos))
+        print("----- SyncFirebase.sync_firebase() completed successfully. -----")
 
 if __name__ == "__main__":
     sync_firebase()

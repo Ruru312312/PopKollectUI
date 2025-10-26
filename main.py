@@ -385,7 +385,7 @@ class Home(QWidget):
         print("Home.sync_app() was called")
         SyncApp.sync_market_values()
         self.refresh_ui()
-        print("Home.sync_app() has completed.")
+        print("----- Home.sync_app() has completed. -----")
 # sync_app ends here
 
 
