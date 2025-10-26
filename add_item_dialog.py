@@ -110,6 +110,7 @@ class AddItemDialog(QDialog):
         barcode = self.barcode_input.text().strip()
         item_no = self.item_no_input.text().strip()     # <-- Collect new field
         release_year = self.release_year_input.text().strip() # <-- Collect new field
+        image_path = self.image_path_display.text().strip()
         
         # NOTE: market_value_str is read from the default/unchangeable text
         market_value_str = "0.00"

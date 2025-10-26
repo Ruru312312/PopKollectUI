@@ -74,7 +74,7 @@ class Home(QWidget):
         add_button.clicked.connect(self.open_add_item_dialog)
 
         
-        sync_button = QPushButton("Sync", left_frame)
+        sync_button = QPushButton("Fetch Market Values", left_frame)
         sync_button.setStyleSheet("""
             /* Default (Idle) State */
             QPushButton {
@@ -90,10 +90,10 @@ class Home(QWidget):
                 padding-top: 11px;
             }
         """)
-        sync_button.setToolTip("Syncronizes all values from the main database (ONE USE PER DAY)")
+        sync_button.setToolTip("Fetches updated market values from the online database (ONE USE PER DAY).")
         sync_button.clicked.connect(SyncFirebase.sync_firebase)
 
-        update_button = QPushButton("Update", left_frame)
+        update_button = QPushButton("Sync Market Values", left_frame)
         update_button.setStyleSheet("""
             /* Default (Idle) State */
             QPushButton {
@@ -109,7 +109,7 @@ class Home(QWidget):
                 padding-top: 11px;
             }
         """)
-        update_button.setToolTip("Updates the market value live")
+        update_button.setToolTip("Syncs your local collection with the latest market values fetched from the online database.")
         update_button.clicked.connect(self.sync_app)
 
         # Add buttons to the layout
