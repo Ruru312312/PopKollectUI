@@ -17,6 +17,7 @@ from firebase_db import FirebaseDB
 from sync_app import SyncApp
 from sync_firebase import SyncFirebase
 
+
 FunkoDB.create_table()  # Ensure the database table exists
 
 # Main Application Window
@@ -112,6 +113,12 @@ class Home(QWidget):
         update_button.setToolTip("Syncs your local collection with the latest market values fetched from the online database.")
         update_button.clicked.connect(self.sync_app)
 
+        export_button = QPushButton("Export to Excel", left_frame)
+        export_button.setStyleSheet("background-color: #00A86B; color: white; padding: 8px; border-radius: 5px;")
+        export_button.setToolTip("Export data to Excel File format")
+        export_button.clicked.connect(self.export_sql_excel)
+
+
         # Add buttons to the layout
         left_layout.addWidget(logo_label)
         left_layout.addSpacing(20)
@@ -119,6 +126,7 @@ class Home(QWidget):
         left_layout.addSpacing(15)
         left_layout.addWidget(sync_button)
         left_layout.addWidget(update_button)
+        left_layout.addWidget(export_button)
         left_layout.addStretch(1)
 
         main_splitter.addWidget(left_frame)
@@ -387,6 +395,39 @@ class Home(QWidget):
         self.refresh_ui()
         print("----- Home.sync_app() has completed. -----")
 # sync_app ends here
+
+# export_sql_excel starts here
+    def export_sql_excel(self):
+        import sqlite3
+        import pandas as pd
+        from PyQt5.QtWidgets import QFileDialog, QMessageBox
+
+        try:
+            conn = sqlite3.connect("funko_pops.db")
+            tables = pd.read_sql_query("SELECT name FROM sqlite_master WHERE type='table';", conn)
+
+            if tables.empty:
+                QMessageBox.warning(self, "No Tables Found", "The database contains no tables.")
+                conn.close()
+                return
+
+            file_path, _ = QFileDialog.getSaveFileName(self, "Save Excel File", "", "Excel Files (*.xlsx)")
+
+            if not file_path:
+                conn.close()
+                return
+
+            with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
+                for table_name in tables['name']:
+                    df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
+                    df.to_excel(writer, sheet_name=table_name, index=False)
+
+            conn.close()
+            QMessageBox.information(self, "Export to Excel is Successful", f"Check your Excel file here:\n{file_path}")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"An error occurred:\n{e}")
+# export_sql_excel ends here
 
 
 if __name__ == "__main__":
