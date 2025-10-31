@@ -65,9 +65,16 @@ class Home(QWidget):
         left_frame.setFixedWidth(150)
 
         left_layout = QVBoxLayout(left_frame)
-        logo_label = QLabel("POPKOLLECT", left_frame)
+        # logo_label = QLabel("logo\luffy.jpg", left_frame)
+        # logo_label.setAlignment(Qt.AlignCenter)
+        # logo_label.setStyleSheet("font-size: 24px; font-weight: bold; border: 2px solid grey; padding: 10px;")
+
+        logo_label = QLabel(left_frame)
+        logo_pixmap = QPixmap("logo/luffy.jpg")
+        logo_pixmap = logo_pixmap.scaled(120, 120, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        logo_label.setPixmap(logo_pixmap)
         logo_label.setAlignment(Qt.AlignCenter)
-        logo_label.setStyleSheet("font-size: 24px; font-weight: bold; border: 2px solid grey; padding: 10px;")
+        logo_label.setStyleSheet("border: 2px solid grey; padding: 10px;")
         
         # --- BUTTONS SECTION ---
 
@@ -197,12 +204,13 @@ class Home(QWidget):
         # Details Frame and Grid Layout
         details_frame = QFrame(right_frame)
         details_layout = QGridLayout(details_frame)
+        details_frame.setFixedWidth(380)
         
         # --- Create Detail Labels and Info Icons ---
         # 0: Barcode Label and Icon
         self.barcode_label = QLabel("Barcode: --")
         self.barcode_icon = QLabel(details_frame)
-        self.setup_info_icon(self.barcode_icon, "ENTER TIP FOR BARCODE")
+        self.setup_info_icon(self.barcode_icon, "The barcode is required to fetch market values from the online database.")
         details_layout.addWidget(self.barcode_label, 0, 0)
         details_layout.addWidget(self.barcode_icon, 0, 1)
         
@@ -221,13 +229,16 @@ class Home(QWidget):
         # 4: Release Year Label and Icon
         self.year_label = QLabel("Release Year: --")
         self.year_icon = QLabel(details_frame)
-        self.setup_info_icon(self.year_icon, "ENTER TIP FOR RELEASE YEAR")
+        self.setup_info_icon(self.year_icon, "The release year influences market value calculations. Please ensure it's accurate.")
         details_layout.addWidget(self.year_label, 4, 0)
         details_layout.addWidget(self.year_icon, 4, 1)
 
         # 5: Market Value Label
         self.value_label = QLabel("Market Value: --")
-        details_layout.addWidget(self.value_label, 5, 0, 1, 2)
+        self.value_icon = QLabel(details_frame)
+        self.setup_info_icon(self.value_icon, "You may edit this value manually if your Pop is not listed in the online database.")
+        details_layout.addWidget(self.value_label, 5, 0)
+        details_layout.addWidget(self.value_icon, 5, 1)
         
         # 6: invis Label
         self.invis_label = QLabel("")
@@ -357,12 +368,14 @@ class Home(QWidget):
 
         for firebase_funko in firebase_funkos:
             if current_funkos.barcode == firebase_funko.barcode:
-                print(current_funkos.name)
-                PopFoundInDB = True
-                print ("Pop In Database")
+                if current_funkos.year == firebase_funko.year:
+                    print(current_funkos.name)
+                    PopFoundInDB = True
+                    print ("Pop foound in database")
+                    continue
         
         if not PopFoundInDB:
-            print("notFoundDawg")
+            print("Pop was not found in database")
         return PopFoundInDB
              
         
@@ -492,7 +505,7 @@ class Home(QWidget):
             QMessageBox.warning(
                 self, 
                 "Update Failed", 
-                f"Cannot update market values. The required database file '{DB_FILE_NAME}' was not found in the application directory."
+                f"Cannot sync market values. Please click the \"Fetch Market Values\" button first."
             )
             print(f"Error: {DB_FILE_NAME} not found. Update aborted.")
             return # Stop execution if the file is missing
