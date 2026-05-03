@@ -15,7 +15,6 @@ Features:
 Tech Stack:
   Python (backend processing)
   Javascript (UI)
-  C# (UI)
   Firebase (Cloud Integration)
   SQLite (Local Database)
   eBay REST API
